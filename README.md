@@ -1,15 +1,5 @@
 # Tetris project
 
-This small project is an implementation of tetris. Although there a millions of programs like this one, my intension is to create a structure and its implementation without copy and paste. In the following I develop the functions and classes. Ideally this is made before the actual implementation, but may evolve during the coding process.
-
-________________
-## main structure
-
-### main()
-
-### gameLoop()
-
-### updateWindow()
-
-________________
-## 
+This small project is an implementation of tetris.
+Although there are already millions of tetris programs, my intension is to gain experience in programming, mainly in creating a structure without copy and paste.
+I use python 3.6 and pygame 1.9.6
