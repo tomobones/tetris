@@ -1,11 +1,16 @@
 import pygame
 import random
-import pandas
 
 # global variables
 timeGameLoop = 20
-timeFalling = 500
+timeFalling = 1000
 timeLevel = 10000
+
+scoringForFullRows = [0, 40, 100, 300, 1200]
+scoringFactorPerLevel = [1, 1, 2, 2, 3, 3, 4, 4, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5]
+
+nintendoFramesPerSeconds = 60.0988
+framesPerLevel = [48, 43, 38, 33, 28, 23, 18, 13, 8, 6, 5, 5, 5, 4, 4, 4, 3, 3, 3, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 1]
 
 windowsSize = (1000, 1000)
 windowsBackgroundColor = (50, 50, 50)
@@ -177,15 +182,38 @@ def refreshSidePanelDisplayWithBlocks(blocks):
     win.blit(temp_surface, (200+gameSurfaceSize[0], 100))
     pygame.display.update()
 
-def refreshSidePanelDisplayWithPoints(points):
+def refreshSidePanelDisplayWithLevel(level):
+    font = pygame.font.SysFont('comicsans', 30)
+    text = font.render('Level: '+str(level), 1, (255, 255, 255))
+    temp_surface = pygame.Surface(text.get_size())
+    temp_surface.fill(windowsBackgroundColor)
+    temp_surface.blit(text, (0, 0))
+
+    win.blit(temp_surface, (400 + gameSurfaceSize[0], 100))
+    pygame.display.update()
+
+def refreshSidePanelDisplayWithScore(points):
     font = pygame.font.SysFont('comicsans', 30)
     text = font.render('Points: '+str(points), 1, (255, 255, 255))
     temp_surface = pygame.Surface(text.get_size())
     temp_surface.fill(windowsBackgroundColor)
     temp_surface.blit(text, (0, 0))
 
-    win.blit(temp_surface, (400+gameSurfaceSize[0], 100))
+    win.blit(temp_surface, (400 + gameSurfaceSize[0], 150))
     pygame.display.update()
+
+def refreshSidePanelDisplayWithFullLines(lines):
+    font = pygame.font.SysFont('comicsans', 30)
+    text = font.render('Full lines: ' + str(lines), 1, (255, 255, 255))
+    temp_surface = pygame.Surface(text.get_size())
+    temp_surface.fill(windowsBackgroundColor)
+    temp_surface.blit(text, (0, 0))
+
+    win.blit(temp_surface, (400 + gameSurfaceSize[0], 200))
+    pygame.display.update()
+
+def fallingTimeForLevel(level):
+    return 1000 * framesPerLevel[level] // nintendoFramesPerSeconds
 
 def numberOfFullRows(blocks):
     rowCounter = [0 for _ in range(gameGridSize[1])]
@@ -254,11 +282,16 @@ def mainMenu():
     return
 
 def gameLoop():
+    timeFalling = fallingTimeForLevel(0)
     countFallingTime = 0
     countLevelTime = 0
     mustFall = False
     mustIncreaseLevel = False
-    points = 0
+
+    score = 0
+    level = 0
+    fullLines = 0
+
     clock = pygame.time.Clock()
     clock.tick()
     staticBlocks = {(x, gameGridSize[1]): (0, 0, 0) for x in range(10)}
@@ -268,13 +301,11 @@ def gameLoop():
     win.fill(windowsBackgroundColor)
     refreshGamePanelWithBlocks(actualElement.blocks(), staticBlocks)
     refreshSidePanelDisplayWithBlocks(nextElement.blocks())
-    refreshSidePanelDisplayWithPoints(points)
-
+    refreshSidePanelDisplayWithScore(score)
+    refreshSidePanelDisplayWithLevel(level)
+    refreshSidePanelDisplayWithFullLines(fullLines)
 
     gameLoopIsRunning = True
-
-    def handleEndOfFalling():
-        pass
 
     while gameLoopIsRunning:
         countFallingTime += clock.get_rawtime()
@@ -318,17 +349,19 @@ def gameLoop():
                 actualElement = nextElement
                 nextElement = Element()
                 refreshSidePanelDisplayWithBlocks(nextElement.blocks())
-                # check full rows - return number of deleted rows -> points, "full row counter"
-                points += numberOfFullRows(staticBlocks)
-                refreshSidePanelDisplayWithPoints(points)
+                fullLines += numberOfFullRows(staticBlocks)
+                refreshSidePanelDisplayWithFullLines(fullLines)
+                if numberOfFullRows(staticBlocks) != 0 and fullLines % 10 == 0: mustIncreaseLevel = True
+                score += scoringFactorPerLevel[level] * scoringForFullRows[numberOfFullRows(staticBlocks)]
+                refreshSidePanelDisplayWithScore(score)
                 staticBlocks = deleteFullRows(staticBlocks)
-                # set 'full row counter' -> in case increase level
-                # check game over -> save points... input name ec
                 if (isGameOver(staticBlocks)): gameLoopIsRunning = False
                 # update points
 
         if mustIncreaseLevel:
-            print('Level Increase!')
+            level += 1
+            timeFalling = fallingTimeForLevel(level)
+            refreshSidePanelDisplayWithLevel(level)
             mustIncreaseLevel = False
 
     mainMenu()
