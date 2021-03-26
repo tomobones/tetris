@@ -2,10 +2,6 @@ import pygame
 import random
 
 # global variables
-timeGameLoop = 20
-timeFalling = 1000
-timeLevel = 10000
-
 scoringForFullRows = [0, 40, 100, 300, 1200]
 scoringFactorPerLevel = [1, 1, 2, 2, 3, 3, 4, 4, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5]
 
@@ -120,7 +116,6 @@ class Element(object):
         return
 
 def surfaceWithGridAndBlocks(blocks={}):
-
     gameSurface = pygame.Surface(gameSurfaceSize)
     gameSurface.fill(gameBackgroundColor)
 
@@ -284,7 +279,6 @@ def mainMenu():
 def gameLoop():
     timeFalling = fallingTimeForLevel(0)
     countFallingTime = 0
-    countLevelTime = 0
     mustFall = False
     mustIncreaseLevel = False
 
@@ -309,15 +303,12 @@ def gameLoop():
 
     while gameLoopIsRunning:
         countFallingTime += clock.get_rawtime()
-        countLevelTime += clock.get_rawtime()
         clock.tick()
 
-        # check time for next step of falling
         if countFallingTime > timeFalling:
             mustFall = True
             countFallingTime %= timeFalling
 
-        # check key events
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 gameLoopIsRunning = False
@@ -339,7 +330,6 @@ def gameLoop():
                 if (event.key == pygame.K_q):
                     gameLoopIsRunning = False
 
-        # handle diverse cases
         if mustFall:
             if actualElement.fallsOneStepWithSuccess(staticBlocks):
                 mustFall = False
@@ -356,7 +346,6 @@ def gameLoop():
                 refreshSidePanelDisplayWithScore(score)
                 staticBlocks = deleteFullRows(staticBlocks)
                 if (isGameOver(staticBlocks)): gameLoopIsRunning = False
-                # update points
 
         if mustIncreaseLevel:
             level += 1
